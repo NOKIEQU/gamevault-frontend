@@ -5,6 +5,7 @@ import Footer from "@/components/footer";
 import { ThemeProvider } from "../components/themeProvider";
 const inter = Inter({ subsets: ["latin"] });
 import { Toaster } from "@/components/ui/toaster"
+import { CartProvider } from '@/app/context/cart-context'
 
 export const metadata = {
   title: "Game Vault - All of your games in one place!",
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
       <head/>
         <body className={inter.className}>
       <ThemeProvider defaultTheme="light">
+        <CartProvider>
           <div className="relative">
             <nav className="px-5 md:px-20 lg:px-40 2xl:px-60">
               <Navbar />
@@ -25,6 +27,7 @@ export default function RootLayout({ children }) {
             {children}
             <Footer />
           </div>
+          </CartProvider>
       </ThemeProvider>
       <Toaster />
         </body>

@@ -6,20 +6,21 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ShoppingCart, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ShoppingCart, Check, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import { useCart } from '@/app/context/cart-context'
 
 const games = [
-  { 
-    id: 1, 
-    title: "Elden Ring", 
-    genre: "Action RPG", 
-    price: 59.99, 
-    rating: 4.8, 
-    releaseYear: 2022, 
+  {
+    id: 1,
+    title: "Elden Ring",
+    genre: "Action RPG",
+    price: 59.99,
+    rating: 4.8,
+    releaseYear: 2022,
     description: "Elden Ring is an action role-playing game developed by FromSoftware and published by Bandai Namco Entertainment.",
     reviews: [
       { id: 1, author: "John Doe", avatar: "JD", rating: 5, content: "Amazing game! The open world is breathtaking.", helpful: 42, notHelpful: 3 },
@@ -152,12 +153,12 @@ export default function GameStore() {
   const [priceRange, setPriceRange] = useState([0, 100])
   const [minRating, setMinRating] = useState(0)
   const [selectedYears, setSelectedYears] = useState([])
-  const [cart, setCart] = useState({})
   const [currentPage, setCurrentPage] = useState(1)
   const { toast } = useToast()
+  const { cart, addToCart, updateQuantity } = useCart()
 
   const itemsPerPage = 6
-  const filteredGames = games.filter(game => 
+  const filteredGames = games.filter(game =>
     (selectedGenres.length === 0 || selectedGenres.includes(game.genre)) &&
     game.price >= priceRange[0] && game.price <= priceRange[1] &&
     game.rating >= minRating &&
@@ -171,7 +172,7 @@ export default function GameStore() {
   )
 
   const handleGenreChange = (genre) => {
-    setSelectedGenres(prev => 
+    setSelectedGenres(prev =>
       prev.includes(genre)
         ? prev.filter(g => g !== genre)
         : [...prev, genre]
@@ -179,15 +180,18 @@ export default function GameStore() {
     setCurrentPage(1)
   }
 
-  const addToCart = (gameId) => {
-    setCart(prevCart => {
-      const newCart = { ...prevCart, [gameId]: (prevCart[gameId] || 0) + 1 }
-      toast({
-        title: "Added to cart",
-        description: `${games.find(g => g.id === gameId)?.title} has been added to your cart.`,
-      })
-      return newCart
+  const handleAddToCart = (game) => {
+    addToCart({
+      id: game.id,
+      title: game.title,
+      price: game.price,
+      quantity: 1
     })
+    toast({
+      title: "Item Added",
+      description: "The game has been added to your cart.",
+  })
+    console.log(`${game.title} has been added to your cart.`)
   }
 
   return (
@@ -206,8 +210,8 @@ export default function GameStore() {
                     <h3 className="font-medium mb-2">Genres</h3>
                     {genres.map(genre => (
                       <div key={genre} className="flex items-center space-x-2 mb-2">
-                        <Checkbox 
-                          id={genre} 
+                        <Checkbox
+                          id={genre}
                           checked={selectedGenres.includes(genre)}
                           onCheckedChange={() => handleGenreChange(genre)}
                         />
@@ -257,11 +261,11 @@ export default function GameStore() {
                     <h3 className="font-medium mb-2">Release Year</h3>
                     {Array.from(new Set(games.map(game => game.releaseYear))).sort().map(year => (
                       <div key={year} className="flex items-center space-x-2 mb-2">
-                        <Checkbox 
-                          id={`year-${year}`} 
+                        <Checkbox
+                          id={`year-${year}`}
                           checked={selectedYears.includes(year)}
                           onCheckedChange={() => {
-                            setSelectedYears(prev => 
+                            setSelectedYears(prev =>
                               prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
                             )
                             setCurrentPage(1)
@@ -280,50 +284,73 @@ export default function GameStore() {
         </aside>
         <main className="lg:col-span-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {paginatedGames.map(game => (
-              <Card key={game.id} className="flex flex-col justify-between">
-                <Link href={`/shop/${game.id}`} className="flex-grow">
-                  <div>
-                    <img 
-                      src={`https://fakeimg.pl/500x300?text=Game`}
-                      alt={game.title}
-                      className="w-full h-48 object-cover"
-                    />
-                    <CardHeader>
-                      <CardTitle className="flex justify-between items-start">
-                        <span className="text-lg">{game.title}</span>
-                        <Badge variant="secondary">{game.releaseYear}</Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-2">{game.genre}</p>
-                      <div className="flex items-center space-x-1 text-yellow-500">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <span key={i}>
-                            {i < Math.floor(game.rating) ? "★" : "☆"}
-                          </span>
-                        ))}
-                        <span className="text-sm text-muted-foreground ml-1">({game.rating})</span>
+          {paginatedGames.map(game => {
+              const cartItem = cart.find(item => item.id === game.id)
+              return (
+                <Card key={game.id} className="flex flex-col justify-between">
+                  <Link href={`/shop/${game.id}`} className="flex-grow">
+                    <div>
+                      <img 
+                        src={`https://fakeimg.pl/500x300?text=Game`}
+                        alt={game.title}
+                        className="w-full h-48 object-cover"
+                      />
+                      <CardHeader>
+                        <CardTitle className="flex justify-between items-start">
+                          <span className="text-lg">{game.title}</span>
+                          <Badge variant="secondary">{game.releaseYear}</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground mb-2">{game.genre}</p>
+                        <div className="flex items-center space-x-1 text-yellow-500">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span key={i}>
+                              {i < Math.floor(game.rating) ? "★" : "☆"}
+                            </span>
+                          ))}
+                          <span className="text-sm text-muted-foreground ml-1">({game.rating})</span>
+                        </div>
+                      </CardContent>
+                    </div>
+                  </Link>
+                  <CardFooter className="flex justify-between items-center">
+                    <span className="text-lg font-bold">${game.price.toFixed(2)}</span>
+                    {cartItem ? (
+                      <div className="flex items-center">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => updateQuantity(game.id, cartItem.quantity - 1)}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="mx-2">{cartItem.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => updateQuantity(game.id, cartItem.quantity + 1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </CardContent>
-                  </div>
-                </Link>
-                <CardFooter className="flex justify-between items-center">
-                  <span className="text-lg font-bold">${game.price.toFixed(2)}</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      addToCart(game.id);
-                    }}
-                  >
-                    {cart[game.id] ? <Check size={20} /> : <ShoppingCart size={20} />}
-                    <span className="sr-only">Add to Cart</span>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleAddToCart(game);
+                        }}
+                      >
+                        <ShoppingCart size={20} />
+                        <span className="sr-only">Add to Cart</span>
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              )
+            })}
           </div>
           {totalPages > 1 && (
             <div className="flex justify-center items-center space-x-2 mt-8">

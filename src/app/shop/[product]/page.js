@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Star, ShoppingCart, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { ArrowLeft, Star, ShoppingCart, ThumbsUp, ThumbsDown, Plus, Minus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,17 +12,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { toast } from "@/hooks/use-toast"
+import { useCart } from '@/app/context/cart-context'
+import { useToast } from "@/hooks/use-toast"
+
 
 // This would typically come from an API or database
 const games = [
-  { 
-    id: 1, 
-    title: "Elden Ring", 
-    genre: "Action RPG", 
-    price: 59.99, 
-    rating: 4.8, 
-    releaseYear: 2022, 
+  {
+    id: 1,
+    title: "Elden Ring",
+    genre: "Action RPG",
+    price: 59.99,
+    rating: 4.8,
+    releaseYear: 2022,
     description: "Elden Ring is an action role-playing game developed by FromSoftware and published by Bandai Namco Entertainment.",
     reviews: [
       { id: 1, author: "John Doe", avatar: "JD", rating: 5, content: "Amazing game! The open world is breathtaking.", helpful: 42, notHelpful: 3 },
@@ -153,6 +155,10 @@ export default function ProductPage() {
   const [game, setGame] = useState(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [newReview, setNewReview] = useState({ rating: 5, content: '' })
+  const [quantity, setQuantity] = useState(1)
+  const { cart, addToCart, updateQuantity } = useCart()
+  const { toast } = useToast()
+
 
   useEffect(() => {
     const productId = typeof params.product === 'string' ? parseInt(params.product, 10) : null
@@ -162,20 +168,44 @@ export default function ProductPage() {
     }
   }, [params.product])
 
-  const addToCart = () => {
+  useEffect(() => {
     if (game) {
-      toast({
-        title: "Added to cart",
-        description: `${game.title} has been added to your cart.`,
+      const cartItem = cart.find(item => item.id === game.id)
+      if (cartItem) {
+        setQuantity(cartItem.quantity)
+      } else {
+        setQuantity(1)
+      }
+    }
+  }, [game, cart])
+
+  const handleAddToCart = () => {
+    if (game) {
+      addToCart({
+        id: game.id,
+        title: game.title,
+        price: game.price,
+        quantity: quantity
       })
+      console.log(`${quantity} ${quantity === 1 ? 'copy' : 'copies'} of ${game.title} added to cart.`)
+      toast({
+        title: `${quantity} ${quantity === 1 ? 'Item' : 'Items'} added to cart`,
+        description: `The ${quantity === 1 ? 'game' : 'games'} has been added to your cart.`,
+    })
+    }
+  }
+
+  const handleQuantityChange = (newQuantity) => {
+    if (newQuantity >= 1) {
+      setQuantity(newQuantity)
+      if (cart.some(item => item.id === game.id)) {
+        updateQuantity(game.id, newQuantity)
+      }
     }
   }
 
   const handleHelpful = (reviewId, isHelpful) => {
-    toast({
-      title: isHelpful ? "Marked as helpful" : "Marked as not helpful",
-      description: "Thank you for your feedback!",
-    })
+    console.log(`Review ${reviewId} marked as ${isHelpful ? 'helpful' : 'not helpful'}`)
   }
 
   const handleSubmitReview = (e) => {
@@ -194,11 +224,12 @@ export default function ProductPage() {
         ...game,
         reviews: [...game.reviews, newReviewObj]
       })
+      // this clears the review form after submission
       setNewReview({ rating: 5, content: '' })
       toast({
-        title: "Review submitted",
-        description: "Thank you for your review!",
-      })
+        title: "Review Submitted",
+        description: "Thank you for submitting your review!",
+    })
     }
   }
 
@@ -235,10 +266,30 @@ export default function ProductPage() {
           <p className="text-gray-700 mb-6">{game.description}</p>
           <div className="flex items-center justify-between mb-6">
             <span className="text-3xl font-bold">${game.price.toFixed(2)}</span>
-            <Button onClick={addToCart} className="px-8">
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              Add to Cart
-            </Button>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleQuantityChange(quantity - 1)}
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="mx-2 w-8 text-center">{quantity}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleQuantityChange(quantity + 1)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button onClick={handleAddToCart} className="px-8">
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Add to Cart
+              </Button>
+            </div>
           </div>
           <Separator className="my-6" />
           <Card>

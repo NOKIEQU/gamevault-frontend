@@ -2,16 +2,17 @@
 import React from 'react'
 import { Button } from './ui/button'
 import Link from 'next/link'
-import { Menu, Moon, Sun, X } from 'lucide-react'
+import { Menu, Moon, Sun, X, ShoppingCart } from 'lucide-react'
 import Logo from './logo'
 import { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import throttle from 'lodash/throttle';
-import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger} from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { usePathname } from 'next/navigation'
 import { useTheme } from "next-themes"
 
 function Navbar() {
     const { screenSize } = useScreenSize();
+    const [basketItems, setBasketItems] = useState([])
     const path = usePathname()
     const disableNavWithFooter = [
         "/login",
@@ -21,7 +22,7 @@ function Navbar() {
         "/admin/games",
         "/admin/sales",
         "/admin/users",
-        "/admin/settings",        
+        "/admin/settings",
 
     ]
 
@@ -86,12 +87,13 @@ function Navbar() {
 
     return (
         <>
-            {!disableNavWithFooter.includes(path) ? screenSize === 'xs' ? <NavbarMobile /> : <FullNavbar /> : null}
+            {!disableNavWithFooter.includes(path) ? screenSize === 'xs' ? <NavbarMobile basketItems={basketItems} /> : <FullNavbar basketItems={basketItems} /> : null}
         </>
     )
 }
 
-function FullNavbar() {
+function FullNavbar({basketItems}) {
+
 
 
     return (
@@ -108,7 +110,14 @@ function FullNavbar() {
                         <li className={"mx-5"}><Link href={"/faq"}>FAQ</Link></li>
                     </ul>
                     <Button className={"mr-5"}><Link href={"/register"}>Register {"->"}</Link></Button>
-                    <ChangeTheme />
+                    {/* <ChangeTheme /> */}
+                    {/* <div className='relative border rounded-lg border-gray-200 p-2'>
+                        <ShoppingCart size={20} />
+                        <div className='absolute -top-2 -right-2 bg-primary rounded-full text-white px-1 text-xs'>{basketItems.length === null ? 0 : basketItems.length}</div>
+
+
+                    </div> */}
+                    <BasketComponent basketItems={basketItems} />
                 </div>
             </nav>
         </div>
@@ -116,7 +125,7 @@ function FullNavbar() {
 }
 
 
-function NavbarMobile() {
+function NavbarMobile({basketItems}) {
 
     return (
         <div className={"w-full h-auto"}>
@@ -132,7 +141,7 @@ function NavbarMobile() {
                             <SheetHeader>
                                 <SheetTitle className={"flex flex-row items-center gap-x-2"}>
                                     <Logo />
-                                     <h1 className={"text-2xl font-bold"}>Game Vault</h1>
+                                    <h1 className={"text-2xl font-bold"}>Game Vault</h1>
 
                                 </SheetTitle>
                             </SheetHeader>
@@ -146,8 +155,15 @@ function NavbarMobile() {
                                 </ul>
                                 <div className={"w-full flex flex-row justify-between gap-2"}>
                                     <Button className={"w-full"}><Link href={"/register"}>Register {"->"}</Link></Button>
-                                    <ChangeTheme />
+                                    {/* <ChangeTheme /> */}
                                 </div>
+                                {/* <div className='relative border rounded-lg border-gray-200 p-2'>
+                                    <ShoppingCart size={20} />
+                                    <div className='absolute -top-2 -right-2 bg-primary rounded-full text-white px-1 text-xs'>{basketItems.length === null ? 0 : basketItems.length}</div>
+
+
+                                </div> */}
+                                <BasketComponent basketItems={basketItems} />
                             </div>
                         </SheetContent>
                     </Sheet>
@@ -158,6 +174,14 @@ function NavbarMobile() {
     )
 }
 
+function BasketComponent({basketItems}) {
+    return (
+        <div className='relative border rounded-lg border-gray-200 p-2 cursor-pointer hover:bg-gray-100'>
+            <ShoppingCart size={20} />
+            <div className='absolute -top-2 -right-2 bg-primary rounded-full text-white px-1 text-xs'>{basketItems.length}</div>
+        </div>
+    )
+}
 
 function ChangeTheme() {
     const [mounted, setMounted] = useState(false)

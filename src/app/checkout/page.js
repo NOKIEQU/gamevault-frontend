@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCart } from '@/app/context/cart-context'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -37,6 +37,7 @@ export default function CheckoutPage() {
         setShippingInfo({ ...shippingInfo, [e.target.name]: e.target.value })
     }
 
+    // validate the card number
     const handlePaymentInfoChange = (e) => {
         const { name, value } = e.target
         let updatedValue = value
@@ -57,6 +58,7 @@ export default function CheckoutPage() {
         validateField(name, updatedValue)
     }
 
+    // validate expiration date, and cvv
     const validateField = (name, value) => {
         let error = ''
         switch (name) {
@@ -92,12 +94,20 @@ export default function CheckoutPage() {
             })
             return
         }
-        // Here you would typically send the order to your backend
+        // Send the order to the backend
         console.log('Order submitted', { cart, shippingInfo, paymentInfo })
 
         clearCart()
         router.push('/checkout/success')
     }
+
+    useEffect(() => {
+
+        // Do not allow user to checkout if cart is empty
+        if (cart.length === 0) {
+            router.push('/shop')
+        }
+    }, [cart])
 
     return (
         <div className="w-full h-full p-5 md:px-20 lg:px-40 2xl:px-60 overflow-hidden">

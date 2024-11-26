@@ -6,14 +6,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export default function CheckoutPage() {
-    const { cart, getCartTotal } = useCart()
+    const { cart, getCartTotal, clearCart } = useCart()
     const { toast } = useToast()
+    const router = useRouter()
 
     const [shippingInfo, setShippingInfo] = useState({
         fullName: '',
@@ -91,26 +94,28 @@ export default function CheckoutPage() {
         }
         // Here you would typically send the order to your backend
         console.log('Order submitted', { cart, shippingInfo, paymentInfo })
-        toast({
-            title: "Order Submitted",
-            description: "Your order has been successfully placed!",
-        })
-        // You might want to clear the cart and redirect to a confirmation page
+
+        clearCart()
+        router.push('/checkout/success')
     }
 
     return (
         <div className="w-full h-full p-5 md:px-20 lg:px-40 2xl:px-60 overflow-hidden">
+            <Link href="/shop" className="inline-flex items-center text-sm font-medium text-blue-600 hover:underline mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Store
+            </Link>
             <h1 className="text-4xl font-bold mb-8">Checkout</h1>
             <div className="grid gap-8 md:grid-cols-2">
                 <div>
-                    <Card className="bg-gradient-to-br from-gray-50 to-white">
+                    <Card className="">
                         <CardHeader>
                             <CardTitle className="text-2xl">Your Cart</CardTitle>
                             <CardDescription>Review your items before purchasing</CardDescription>
                         </CardHeader>
                         <CardContent>
                             {cart.map((item) => (
-                                <div key={item.id} className="flex justify-between items-center mb-4 p-2 bg-gray-50 rounded-md">
+                                <div key={item.id} className="flex justify-between items-center mb-4 p-2 rounded-md">
                                     <div>
                                         <h3 className="font-semibold">{item.title}</h3>
                                         <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
@@ -139,7 +144,7 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                     <form onSubmit={handleSubmit}>
-                        <Card className="mb-8 bg-gradient-to-br from-gray-50 to-white">
+                        <Card className="mb-8 ">
                             <CardHeader>
                                 <CardTitle className="text-2xl">Shipping Information</CardTitle>
                             </CardHeader>
@@ -208,7 +213,7 @@ export default function CheckoutPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                        <Card className="mb-8 bg-gradient-to-br from-gray-50 to-white">
+                        <Card className="mb-8">
                             <CardHeader>
                                 <CardTitle className="text-2xl">Payment Information</CardTitle>
                             </CardHeader>
@@ -282,4 +287,5 @@ export default function CheckoutPage() {
         </div>
     )
 }
+
 

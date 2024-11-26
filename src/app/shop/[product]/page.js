@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Star, ShoppingCart, ThumbsUp, ThumbsDown, Plus, Minus } from 'lucide-react'
+import { ArrowLeft, Star, ShoppingCart, ThumbsUp, ThumbsDown, Plus, Minus, SearchX } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -187,11 +187,11 @@ export default function ProductPage() {
         price: game.price,
         quantity: quantity
       })
-      console.log(`${quantity} ${quantity === 1 ? 'copy' : 'copies'} of ${game.title} added to cart.`)
+      // console.log(`${quantity} ${quantity === 1 ? 'copy' : 'copies'} of ${game.title} added to cart.`)
       toast({
         title: `${quantity} ${quantity === 1 ? 'Item' : 'Items'} added to cart`,
         description: `The ${quantity === 1 ? 'game' : 'games'} has been added to your cart.`,
-    })
+      })
     }
   }
 
@@ -206,8 +206,13 @@ export default function ProductPage() {
 
   const handleHelpful = (reviewId, isHelpful) => {
     console.log(`Review ${reviewId} marked as ${isHelpful ? 'helpful' : 'not helpful'}`)
+    // add logic to increment helpful/not helpful count
   }
 
+  // this function handles the submission of a new review
+  // it adds the new review to the game object and clears the review form
+  // TODO: hook up to API to save review data
+  
   const handleSubmitReview = (e) => {
     e.preventDefault()
     if (game) {
@@ -229,12 +234,19 @@ export default function ProductPage() {
       toast({
         title: "Review Submitted",
         description: "Thank you for submitting your review!",
-    })
+      })
     }
   }
 
   if (!game) {
-    return <div className="container mx-auto p-4">Product not found</div>
+    return <div className="w-full min-h-screen p-5 md:px-20 lg:px-40 2xl:px-60">
+      <div className='flex flex-col justify-center items-center'>
+        <SearchX className="h-16 w-16 text-primary" />
+        <h1 className="text-3xl font-bold mb-2">Game Not Found</h1>
+        <p className="text-gray-700">The game you are looking for does not exist.</p>
+      </div>
+
+    </div>
   }
 
   return (
@@ -245,7 +257,7 @@ export default function ProductPage() {
       </Link>
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <div>
-          <img 
+          <img
             src={`https://fakeimg.pl/500x300?text=Game`}
             alt={game.title}
             className="w-full h-auto rounded-lg shadow-lg"
@@ -339,14 +351,14 @@ export default function ProductPage() {
                 <p className="text-gray-700 mb-4">{review.content}</p>
                 <div className="flex items-center justify-between text-sm text-gray-500">
                   <div className="flex items-center space-x-4">
-                    <button 
+                    <button
                       onClick={() => handleHelpful(review.id, true)}
                       className="flex items-center hover:text-blue-600"
                     >
                       <ThumbsUp className="h-4 w-4 mr-1" />
                       <span>Helpful ({review.helpful})</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleHelpful(review.id, false)}
                       className="flex items-center hover:text-blue-600"
                     >

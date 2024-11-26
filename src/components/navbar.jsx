@@ -11,21 +11,32 @@ import { usePathname } from 'next/navigation'
 import { useTheme } from "next-themes"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useCart } from '@/app/context/cart-context'
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+  } from "@/components/ui/drawer"
 
 function Navbar() {
     const { screenSize } = useScreenSize();
     const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart()
     const path = usePathname()
-    const disableNavWithFooter = ["/login", "/register", "/dashboard", "/admin", "/admin/games", "/admin/sales", "/admin/users", "/admin/settings" ]
+    const disableNavWithFooter = ["/login", "/checkout", "/register", "/dashboard", "/admin", "/admin/games", "/admin/sales", "/admin/users", "/admin/settings"]
+    const disableBasket = ["/checkout", "/checkout/success"]
     const [isCartOpen, setIsCartOpen] = useState(false)
 
     const handleCartToggle = () => {
         setIsCartOpen(!isCartOpen)
-      }
-    
-      const handleCartInteraction = (e) => {
+    }
+
+    const handleCartInteraction = (e) => {
         e.stopPropagation()
-      }
+    }
 
     function getScreenSize(width) {
         if (width >= 1536) {
@@ -88,12 +99,12 @@ function Navbar() {
 
     return (
         <>
-            {!disableNavWithFooter.includes(path) ? screenSize === 'xs' ? <NavbarMobile cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} /> : <FullNavbar cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartToggle={handleCartToggle} handleCartInteraction={handleCartInteraction} isCartOpen={isCartOpen} /> : null}
+            {!disableNavWithFooter.includes(path) ? screenSize === 'xs' ? <NavbarMobile screenSize={screenSize} cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} disableBasket={disableBasket} path={path} /> : <FullNavbar cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartToggle={handleCartToggle} handleCartInteraction={handleCartInteraction} isCartOpen={isCartOpen} disableBasket={disableBasket} path={path} /> : null}
         </>
     )
 }
 
-function FullNavbar({ cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen }) {
+function FullNavbar({ cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen, disableBasket, path }) {
 
 
 
@@ -118,7 +129,7 @@ function FullNavbar({ cart, removeFromCart, getCartTotal, updateQuantity, handle
 
 
                     </div> */}
-                    <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartInteraction={handleCartInteraction} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} />
+                    {!disableBasket.includes(path) && <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartInteraction={handleCartInteraction} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} />}
                 </div>
             </nav>
         </div>
@@ -126,10 +137,10 @@ function FullNavbar({ cart, removeFromCart, getCartTotal, updateQuantity, handle
 }
 
 
-function NavbarMobile({ cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen }) {
+function NavbarMobile({ screenSize, cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen, disableBasket, path }) {
 
     return (
-        <div className={"w-full h-auto"}>
+        <div className={"relative w-full h-auto"}>
             <nav className={"flex flex-col justify-between items-center py-5"}>
                 <div className={"w-full flex flex-row justify-between items-center"}>
                     <Link href={"/"}><Logo /></Link>
@@ -148,29 +159,25 @@ function NavbarMobile({ cart, removeFromCart, getCartTotal, updateQuantity, hand
                             </SheetHeader>
                             <div className={"w-full flex flex-col justify-between pt-10"}>
                                 <ul className={"w-full flex flex-col gap-5"}>
-                                    <li className={""}><Button className={"w-full"} variant="outline"><Link href={"/"}>Home</Link></Button></li>
-
-                                    <li className={""}><Button className={"w-full"} variant="outline"><Link href={"/shop"}>Browse Games</Link></Button></li>
-                                    <li className={""}><Button className={"w-full"} variant="outline"><Link href={"/about-us"}>About us</Link></Button></li>
-                                    <li className={"mb-5"}><Button className={"w-full"} variant="outline"><Link href={"/faq"}>FAQ</Link></Button></li>
+                                    <li className={""}><Link href={"/"}><Button className={"w-full"} variant="outline">Home</Button></Link></li>
+                                    <li className={""}><Link href={"/shop"}><Button className={"w-full"} variant="outline">Browse Games</Button></Link></li>
+                                    <li className={""}><Link href={"/about-us"}><Button className={"w-full"} variant="outline">About us</Button></Link></li>
+                                    <li className={"mb-5"}><Link href={"/faq"}><Button className={"w-full"} variant="outline">FAQ</Button></Link></li>
                                 </ul>
                                 <div className={"w-full flex flex-row justify-between gap-2"}>
                                     <Button className={"w-full"}><Link href={"/register"}>Register {"->"}</Link></Button>
                                     {/* <ChangeTheme /> */}
                                 </div>
-                                {/* <div className='relative border rounded-lg border-gray-200 p-2'>
-                                    <ShoppingCart size={20} />
-                                    <div className='absolute -top-2 -right-2 bg-primary rounded-full text-white px-1 text-xs'>{basketItems.length === null ? 0 : basketItems.length}</div>
 
+                                {!disableBasket.includes(path) && screenSize !== "xs" && <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartInteraction={handleCartInteraction} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} />}
 
-                                </div> */}
-                                <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartInteraction={handleCartInteraction} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} />
                             </div>
                         </SheetContent>
                     </Sheet>
                 </div>
 
             </nav>
+            {screenSize === "xs" && !disableBasket.includes(path) && <BasketComponentMobile cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartInteraction={handleCartInteraction} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} />}
         </div>
     )
 }
@@ -180,83 +187,128 @@ function BasketComponent({ cart, removeFromCart, getCartTotal, updateQuantity, h
 
     return (
         <DropdownMenu open={isCartOpen} onOpenChange={handleCartToggle}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  {cart.length > 0 && (
-                    <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {cart.reduce((total, item) => total + item.quantity, 0)}
-                    </span>
-                  )}
-                  <span className="sr-only">Shopping cart</span>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="relative">
+                    <ShoppingCart className="h-5 w-5" />
+                    {cart.length > 0 && (
+                        <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {cart.reduce((total, item) => total + item.quantity, 0)}
+                        </span>
+                    )}
+                    <span className="sr-only">Shopping cart</span>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72" onClick={handleCartInteraction}>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[20rem]" onClick={handleCartInteraction}>
                 <DropdownMenuLabel>Your Cart</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {cart.length === 0 ? (
-                  <DropdownMenuItem>Your cart is empty</DropdownMenuItem>
+                    <DropdownMenuItem>Your cart is empty</DropdownMenuItem>
                 ) : (
-                  <>
-                    <BasketItems cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} />
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <div className="flex justify-between w-full font-semibold">
-                        <span>Total:</span>
-                        <span>${getCartTotal().toFixed(2)}</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/checkout" className="w-full">
-                        <Button className="w-full">Checkout</Button>
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
+                    <>
+                        <BasketItems cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} />
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                            <div className="flex justify-between w-full font-semibold">
+                                <span>Total:</span>
+                                <span>${getCartTotal().toFixed(2)}</span>
+                            </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                            <Link href="/checkout" className="w-full">
+                                <Button className="w-full">Checkout</Button>
+                            </Link>
+                        </DropdownMenuItem>
+                    </>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenuContent>
+        </DropdownMenu>
 
     )
 }
 
-function BasketItems ({cart, removeFromCart, updateQuantity}) {
+function BasketComponentMobile({ cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen }) {
+
+
+    return (
+        <div className='fixed bottom-0 right-0 p-4 z-50'>
+            <Drawer open={isCartOpen} onOpenChange={handleCartToggle}>
+                <DrawerTrigger asChild>
+                    <Button variant="default" size="icon" className="relative p-7 rounded-lg">
+                        <ShoppingCart className='h-10 w-10' />
+                        {cart.length > 0 && (
+                            <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {cart.reduce((total, item) => total + item.quantity, 0)}
+                            </span>
+                        )}
+                        <span className="sr-only">Shopping cart</span>
+                    </Button>
+                </DrawerTrigger>
+                <DrawerContent className="w-full p-7 max-h-[100vh] overflow-y-scroll" onClick={handleCartInteraction}>
+                    <DrawerHeader>
+                        <DrawerTitle>Your Cart</DrawerTitle>
+                    </DrawerHeader>
+                    {cart.length === 0 ? (
+                        <DrawerDescription>Your cart is empty</DrawerDescription>
+                    ) : (
+                        <div className=''>
+                            <BasketItems cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} />
+                                <div className="flex justify-between w-full font-semibold pb-7">
+                                    <span>Total:</span>
+                                    <span>${getCartTotal().toFixed(2)}</span>
+                                </div>
+                                <Link href="/checkout" className="w-full">
+                                    <Button className="w-full">Checkout</Button>
+                                </Link>
+                        </div>
+                    )}
+                </DrawerContent>
+            </Drawer>
+        </div>
+
+
+    )
+}
+
+function BasketItems({ cart, removeFromCart, updateQuantity }) {
     return (
         <>
-        {cart.map((item) => (
-            <div key={item.id} className="flex justify-between items-center">
-              <span className='pl-3 text-sm'>{item.title}</span>
-              <div className="flex items-center">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="mx-2">{item.quantity}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-                <span className="ml-2">${(item.price * item.quantity).toFixed(2)}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeFromCart(item.id)}
-                  className="h-8 w-8 p-0 ml-2"
-                >
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              </div>
-            </div>
-          ))}
+            {cart.map((item) => (
+                <div key={item.id} className="flex justify-between items-center py-3">
+                    <span className='pl-3 text-sm'>{item.title}</span>
+                    <div className="flex items-center">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="h-8 w-8 p-0"
+                        >
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="mx-2">{item.quantity}</span>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="h-8 w-8 p-0"
+                        >
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                        <span className="ml-2">${(item.price * item.quantity).toFixed(2)}</span>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeFromCart(item.id)}
+                            className="h-8 w-8 p-0 ml-2"
+                        >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                    </div>
+
+                </div>
+            ))}
+            
         </>
-        
+
     )
 }
 

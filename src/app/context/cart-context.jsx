@@ -5,14 +5,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 const CartContext = createContext(undefined)
 
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState([])
-
-  useEffect(() => {
+  const [cart, setCart] = useState(() => {
+    // Initialize cart state from localStorage
     const savedCart = localStorage.getItem('cart')
-    if (savedCart) {
-      setCart(JSON.parse(savedCart))
-    }
-  }, [])
+    return savedCart ? JSON.parse(savedCart) : []
+  })
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart))

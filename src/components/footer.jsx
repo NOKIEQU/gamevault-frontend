@@ -14,11 +14,15 @@ const Footer = () => {
         "/login",
         "/register",
         "/dashboard",
+        "/profile",
+        "/profile/edit",
         "/admin",
         "/admin/games",
         "/admin/sales",
         "/admin/users",
         "/admin/settings",
+        "/checkout",
+        "/chckout/success",
     ]
 
     return (

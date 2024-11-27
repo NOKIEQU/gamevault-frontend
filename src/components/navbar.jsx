@@ -21,6 +21,14 @@ import {
     DrawerTitle,
     DrawerTrigger,
   } from "@/components/ui/drawer"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+// Mock user data 
+const user = {
+  isLoggedIn: true,
+  name: 'John Doe',
+  avatar: 'https://github.com/shadcn.png'
+}
 
 function Navbar() {
     const { screenSize } = useScreenSize();
@@ -28,15 +36,15 @@ function Navbar() {
     const path = usePathname()
     const disableNavWithFooter = ["/login", "/checkout", "/register", "/dashboard", "/admin", "/admin/games", "/admin/sales", "/admin/users", "/admin/settings"]
     const disableBasket = ["/checkout", "/checkout/success"]
-    const [isCartOpen, setIsCartOpen] = useState(false)
+    // const [isCartOpen, setIsCartOpen] = useState(false)
 
-    const handleCartToggle = () => {
-        setIsCartOpen(!isCartOpen)
-    }
+    // const handleCartToggle = () => {
+    //     setIsCartOpen(!isCartOpen)
+    // }
 
-    const handleCartInteraction = (e) => {
-        e.stopPropagation()
-    }
+    // const handleCartInteraction = (e) => {
+    //     e.stopPropagation()
+    // }
 
     function getScreenSize(width) {
         if (width >= 1536) {
@@ -56,12 +64,11 @@ function Navbar() {
 
     function useScreenSize() {
         const [dimension, setDimension] = useState({
-            screenSize: undefined, // Default to 'xs'
+            screenSize: undefined,
             width: undefined,
             height: undefined,
         });
 
-        // Define the resize handler
         const handleResize = useCallback(() => {
             if (typeof window !== 'undefined') {
                 const newSize = getScreenSize(window.innerWidth);
@@ -73,22 +80,16 @@ function Navbar() {
             }
         }, []);
 
-        // Create a throttled version of the resize handler
         const throttledHandleResize = useCallback(throttle(handleResize, 300), [
             handleResize,
         ]);
 
         useLayoutEffect(() => {
             if (typeof window !== 'undefined') {
-                // Run the handler immediately to set the initial screen size
                 handleResize();
-
-                // Set up the throttled resize listener
                 window.addEventListener('resize', throttledHandleResize);
-
-                // Clean up
                 return () => {
-                    throttledHandleResize.cancel(); // Cancel the throttle function on cleanup
+                    throttledHandleResize.cancel();
                     window.removeEventListener('resize', throttledHandleResize);
                 };
             }
@@ -96,18 +97,14 @@ function Navbar() {
         return dimension;
     }
 
-
     return (
         <>
-            {!disableNavWithFooter.includes(path) ? screenSize === 'xs' ? <NavbarMobile screenSize={screenSize} cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} disableBasket={disableBasket} path={path} /> : <FullNavbar cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartToggle={handleCartToggle} handleCartInteraction={handleCartInteraction} isCartOpen={isCartOpen} disableBasket={disableBasket} path={path} /> : null}
+            {!disableNavWithFooter.includes(path) ? screenSize === 'xs' ? <NavbarMobile screenSize={screenSize} cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} disableBasket={disableBasket} path={path} /> : <FullNavbar cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} disableBasket={disableBasket} path={path} /> : null}
         </>
     )
 }
 
-function FullNavbar({ cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen, disableBasket, path }) {
-
-
-
+function FullNavbar({ cart, removeFromCart, getCartTotal, updateQuantity, disableBasket, path }) {
     return (
         <div className={"w-full h-auto py-5"}>
             <nav className={"flex justify-between items-center py-5"}>
@@ -121,24 +118,25 @@ function FullNavbar({ cart, removeFromCart, getCartTotal, updateQuantity, handle
                         <li className={"mx-5"}><Link href={"/about-us"}>About us</Link></li>
                         <li className={"mx-5"}><Link href={"/faq"}>FAQ</Link></li>
                     </ul>
-                    <Button className={"mr-5"}><Link href={"/register"}>Register {"->"}</Link></Button>
-                    {/* <ChangeTheme /> */}
-                    {/* <div className='relative border rounded-lg border-gray-200 p-2'>
-                        <ShoppingCart size={20} />
-                        <div className='absolute -top-2 -right-2 bg-primary rounded-full text-white px-1 text-xs'>{basketItems.length === null ? 0 : basketItems.length}</div>
-
-
-                    </div> */}
-                    {!disableBasket.includes(path) && <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartInteraction={handleCartInteraction} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} />}
+                    
+                    {!disableBasket.includes(path) && <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} />}
+                    {user.isLoggedIn ? (
+                        <Link className="pl-4" href="/profile">
+                            <Avatar className="mr-5">
+                                <AvatarImage src={user.avatar} alt={user.name} />
+                                <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            </Avatar>
+                        </Link>
+                    ) : (
+                        <Button className={"ml-5"}><Link href={"/register"}>Register {"->"}</Link></Button>
+                    )}
                 </div>
             </nav>
         </div>
     )
 }
 
-
-function NavbarMobile({ screenSize, cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen, disableBasket, path }) {
-
+function NavbarMobile({ screenSize, cart, removeFromCart, getCartTotal, updateQuantity, disableBasket, path }) {
     return (
         <div className={"relative w-full h-auto"}>
             <nav className={"flex flex-col justify-between items-center py-5"}>
@@ -154,7 +152,6 @@ function NavbarMobile({ screenSize, cart, removeFromCart, getCartTotal, updateQu
                                 <SheetTitle className={"flex flex-row items-center gap-x-2"}>
                                     <Logo />
                                     <h1 className={"text-2xl font-bold"}>Game Vault</h1>
-
                                 </SheetTitle>
                             </SheetHeader>
                             <div className={"w-full flex flex-col justify-between pt-10"}>
@@ -165,40 +162,50 @@ function NavbarMobile({ screenSize, cart, removeFromCart, getCartTotal, updateQu
                                     <li className={"mb-5"}><Link href={"/faq"}><Button className={"w-full"} variant="outline">FAQ</Button></Link></li>
                                 </ul>
                                 <div className={"w-full flex flex-row justify-between gap-2"}>
-                                    <Button className={"w-full"}><Link href={"/register"}>Register {"->"}</Link></Button>
-                                    {/* <ChangeTheme /> */}
+                                    {user.isLoggedIn ? (
+                                        <Link href="/profile" className="w-full">
+                                            <Button className="w-full flex items-center justify-center">
+                                                <Avatar className="mr-2">
+                                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                                    <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                </Avatar>
+                                                Profile
+                                            </Button>
+                                        </Link>
+                                    ) : (
+                                        <Button className={"w-full"}><Link href={"/register"}>Register {"->"}</Link></Button>
+                                    )}
                                 </div>
-
-                                {!disableBasket.includes(path) && screenSize !== "xs" && <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartInteraction={handleCartInteraction} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} />}
-
+                                {!disableBasket.includes(path) && screenSize !== "xs" && <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} />}
                             </div>
                         </SheetContent>
                     </Sheet>
                 </div>
-
             </nav>
-            {screenSize === "xs" && !disableBasket.includes(path) && <BasketComponentMobile cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} handleCartInteraction={handleCartInteraction} handleCartToggle={handleCartToggle} isCartOpen={isCartOpen} />}
+            {screenSize === "xs" && !disableBasket.includes(path) && <BasketComponentMobile cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} />}
         </div>
     )
 }
 
-function BasketComponent({ cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen }) {
+// The rest of the components (BasketComponent, BasketComponentMobile, BasketItems, ChangeTheme) remain unchanged
+
+function BasketComponent({ cart, removeFromCart, getCartTotal, updateQuantity }) {
 
 
     return (
-        <DropdownMenu open={isCartOpen} onOpenChange={handleCartToggle}>
+        <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="relative">
-                    <ShoppingCart className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="relative">
+                    <ShoppingCart className="h-10 w-10" />
                     {cart.length > 0 && (
                         <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                             {cart.reduce((total, item) => total + item.quantity, 0)}
                         </span>
                     )}
-                    <span className="sr-only">Shopping cart</span>
+                    
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[20rem]" onClick={handleCartInteraction}>
+            <DropdownMenuContent align="end" className="w-[20rem]">
                 <DropdownMenuLabel>Your Cart</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {cart.length === 0 ? (
@@ -216,7 +223,7 @@ function BasketComponent({ cart, removeFromCart, getCartTotal, updateQuantity, h
                         <DropdownMenuItem>
                             <Link href="/checkout" className="w-full">
                                 <Button className="w-full">Checkout</Button>
-                            </Link>
+                            </Link> 
                         </DropdownMenuItem>
                     </>
                 )}
@@ -226,12 +233,12 @@ function BasketComponent({ cart, removeFromCart, getCartTotal, updateQuantity, h
     )
 }
 
-function BasketComponentMobile({ cart, removeFromCart, getCartTotal, updateQuantity, handleCartToggle, handleCartInteraction, isCartOpen }) {
+function BasketComponentMobile({ cart, removeFromCart, getCartTotal, updateQuantity }) {
 
 
     return (
         <div className='fixed bottom-0 right-0 p-4 z-50'>
-            <Drawer open={isCartOpen} onOpenChange={handleCartToggle}>
+            <Drawer>
                 <DrawerTrigger asChild>
                     <Button variant="default" size="icon" className="relative p-7 rounded-lg">
                         <ShoppingCart className='h-10 w-10' />
@@ -243,7 +250,7 @@ function BasketComponentMobile({ cart, removeFromCart, getCartTotal, updateQuant
                         <span className="sr-only">Shopping cart</span>
                     </Button>
                 </DrawerTrigger>
-                <DrawerContent className="w-full p-7 max-h-[100vh] overflow-y-scroll" onClick={handleCartInteraction}>
+                <DrawerContent className="w-full p-7 max-h-[100vh] overflow-y-scroll">
                     <DrawerHeader>
                         <DrawerTitle>Your Cart</DrawerTitle>
                     </DrawerHeader>

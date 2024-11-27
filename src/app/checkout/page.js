@@ -118,7 +118,7 @@ export default function CheckoutPage() {
             <h1 className="text-4xl font-bold mb-8">Checkout</h1>
             <div className="grid gap-8 md:grid-cols-2">
                 <div>
-                    <Card className="">
+                    <Card className="lg:max-h-[85vh] overflow-y-scroll">
                         <CardHeader>
                             <CardTitle className="text-2xl">Your Cart</CardTitle>
                             <CardDescription>Review your items before purchasing</CardDescription>
@@ -144,7 +144,7 @@ export default function CheckoutPage() {
                                     <span>${0}</span>
                                 </div>
                                 <Separator className="my-2" />
-                                <div className="flex justify-between items-center font-bold text-lg">
+                                <div className="flex justify-between items-center font-bold text-2xl">
                                     <span>Total</span>
                                     <span>${getCartTotal()}</span>
                                 </div>
@@ -297,5 +297,3 @@ export default function CheckoutPage() {
         </div>
     )
 }
-
-

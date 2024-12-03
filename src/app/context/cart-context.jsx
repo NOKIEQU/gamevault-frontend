@@ -1,12 +1,13 @@
 'use client'
 
+// IT TOOK ME 5 HOURS TO DO THIS STUPID FUCKING THING, WHO KNEW REACT HAD CONTEXT PROVIDERS AND WHY NONE OF THE TUTORIALS I WATCHED MENTIONED IT
+
 import React, { createContext, useContext, useState, useEffect } from 'react'
 
 const CartContext = createContext(undefined)
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
-    // Initialize cart state from localStorage
     const savedCart = localStorage.getItem('cart')
     return savedCart ? JSON.parse(savedCart) : []
   })

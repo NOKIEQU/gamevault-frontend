@@ -1,17 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ShoppingCart, Check, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
+import { ShoppingCart, Check, ChevronLeft, ChevronRight, Minus, Plus, Filter } from 'lucide-react'
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useCart } from '@/app/context/cart-context'
+import { useSearchParams } from 'next/navigation'
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 const games = [
   {
@@ -149,13 +151,16 @@ const games = [
 const genres = ["Action RPG", "Sports", "Simulation", "Action Adventure", "Sandbox", "First-Person Shooter", "Strategy", "Party", "Roguelike", "Co-op Adventure"];
 
 export default function GameStore() {
-  const [selectedGenres, setSelectedGenres] = useState([])
+  const searchParams = useSearchParams()
+  const initialGenre = searchParams.get('genre')
+  const [selectedGenres, setSelectedGenres] = useState(initialGenre ? [initialGenre] : [])
   const [priceRange, setPriceRange] = useState([0, 100])
   const [minRating, setMinRating] = useState(0)
   const [selectedYears, setSelectedYears] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const { toast } = useToast()
   const { cart, addToCart, updateQuantity } = useCart()
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const itemsPerPage = 6
   const filteredGames = games.filter(game =>
@@ -190,101 +195,119 @@ export default function GameStore() {
     toast({
       title: "Item Added",
       description: "The game has been added to your cart.",
-  })
+    })
     console.log(`${game.title} has been added to your cart.`)
   }
+
+  const FilterContent = () => (
+    <ScrollArea className="h-[calc(100vh-100px)] pr-4">
+      <div className="space-y-6">
+        <div>
+          <h3 className="font-medium mb-2">Genres</h3>
+          {genres.map(genre => (
+            <div key={genre} className="flex items-center space-x-2 mb-2">
+              <Checkbox
+                id={genre}
+                checked={selectedGenres.includes(genre)}
+                onCheckedChange={() => handleGenreChange(genre)}
+              />
+              <label htmlFor={genre} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {genre}
+              </label>
+            </div>
+          ))}
+        </div>
+        <Separator />
+        <div>
+          <h3 className="font-medium mb-2">Price Range</h3>
+          <Slider
+            min={0}
+            max={100}
+            step={1}
+            value={priceRange}
+            onValueChange={(value) => {
+              setPriceRange(value)
+              setCurrentPage(1)
+            }}
+            className="mb-2"
+          />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>${priceRange[0]}</span>
+            <span>${priceRange[1]}</span>
+          </div>
+        </div>
+        <Separator />
+        <div>
+          <h3 className="font-medium mb-2">Minimum Rating</h3>
+          <Slider
+            min={0}
+            max={5}
+            step={0.1}
+            value={[minRating]}
+            onValueChange={([value]) => {
+              setMinRating(value)
+              setCurrentPage(1)
+            }}
+            className="mb-2"
+          />
+          <div className="text-sm text-muted-foreground">{minRating.toFixed(1)} / 5</div>
+        </div>
+        <Separator />
+        <div>
+          <h3 className="font-medium mb-2">Release Year</h3>
+          {Array.from(new Set(games.map(game => game.releaseYear))).sort().map(year => (
+            <div key={year} className="flex items-center space-x-2 mb-2">
+              <Checkbox
+                id={`year-${year}`}
+                checked={selectedYears.includes(year)}
+                onCheckedChange={() => {
+                  setSelectedYears(prev =>
+                    prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
+                  )
+                  setCurrentPage(1)
+                }}
+              />
+              <label htmlFor={`year-${year}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {year}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+    </ScrollArea>
+  )
 
   return (
     <div className="w-full h-full px-5 md:px-20 lg:px-40 2xl:px-60 overflow-hidden mb-10">
       <h1 className="text-3xl font-bold mb-6">Game Store</h1>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <aside className="lg:col-span-1">
+        <aside className="lg:col-span-1 hidden lg:block">
           <Card className="sticky top-4">
             <CardHeader>
               <CardTitle>Filters</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[calc(100vh-200px)] pr-4">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="font-medium mb-2">Genres</h3>
-                    {genres.map(genre => (
-                      <div key={genre} className="flex items-center space-x-2 mb-2">
-                        <Checkbox
-                          id={genre}
-                          checked={selectedGenres.includes(genre)}
-                          onCheckedChange={() => handleGenreChange(genre)}
-                        />
-                        <label htmlFor={genre} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          {genre}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  <Separator />
-                  <div>
-                    <h3 className="font-medium mb-2">Price Range</h3>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={priceRange}
-                      onValueChange={(value) => {
-                        setPriceRange(value)
-                        setCurrentPage(1)
-                      }}
-                      className="mb-2"
-                    />
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>${priceRange[0]}</span>
-                      <span>${priceRange[1]}</span>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h3 className="font-medium mb-2">Minimum Rating</h3>
-                    <Slider
-                      min={0}
-                      max={5}
-                      step={0.1}
-                      value={[minRating]}
-                      onValueChange={([value]) => {
-                        setMinRating(value)
-                        setCurrentPage(1)
-                      }}
-                      className="mb-2"
-                    />
-                    <div className="text-sm text-muted-foreground">{minRating.toFixed(1)} / 5</div>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h3 className="font-medium mb-2">Release Year</h3>
-                    {Array.from(new Set(games.map(game => game.releaseYear))).sort().map(year => (
-                      <div key={year} className="flex items-center space-x-2 mb-2">
-                        <Checkbox
-                          id={`year-${year}`}
-                          checked={selectedYears.includes(year)}
-                          onCheckedChange={() => {
-                            setSelectedYears(prev =>
-                              prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
-                            )
-                            setCurrentPage(1)
-                          }}
-                        />
-                        <label htmlFor={`year-${year}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          {year}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </ScrollArea>
+              <FilterContent />
             </CardContent>
           </Card>
         </aside>
         <main className="lg:col-span-3">
+          <div className="mb-4 lg:hidden">
+            <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline">
+                  <Filter className="mr-2 h-4 w-4" />
+                  Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <CardTitle className="mb-4">Filters</CardTitle>
+                <FilterContent />
+              </SheetContent>
+            </Sheet>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-          {paginatedGames.map(game => {
+            {paginatedGames.map(game => {
               const cartItem = cart.find(item => item.id === game.id)
               return (
                 <Card key={game.id} className="flex flex-col justify-between">

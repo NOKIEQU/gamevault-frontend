@@ -23,6 +23,7 @@ const Footer = () => {
         "/admin/settings",
         "/checkout",
         "/chckout/success",
+        "/admin/genres"
     ]
 
     return (

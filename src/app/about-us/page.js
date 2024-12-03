@@ -136,7 +136,7 @@ export default function AboutPage() {
         </Accordion>
       </section>
       
-      <section className="text-center border-t pt-12">
+      <section className="text-center border-t py-12">
         <h2 className="text-2xl font-semibold mb-6">Join the GameVault Family</h2>
         <p className="text-lg text-gray-700 mb-4">
           Whether you're a casual gamer or a hardcore enthusiast, GameVault has something for everyone. 

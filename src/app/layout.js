@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <head/>
         <body className={inter.className}>
-      <ThemeProvider defaultTheme="light">
+      {/* <ThemeProvider defaultTheme="light"> */}
         <CartProvider>
           <div className="relative">
             <nav className="px-5 md:px-20 lg:px-40 2xl:px-60">
@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
             <Footer />
           </div>
           </CartProvider>
-      </ThemeProvider>
+      {/* </ThemeProvider> */}
       <Toaster />
         </body>
     </html>

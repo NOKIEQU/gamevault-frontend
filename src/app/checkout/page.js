@@ -18,6 +18,8 @@ export default function CheckoutPage() {
     const { toast } = useToast()
     const router = useRouter()
 
+    const [userCompletedCheckout, setUserCompletedCheckout] = useState(false)
+
     const [shippingInfo, setShippingInfo] = useState({
         fullName: '',
         address: '',
@@ -94,17 +96,19 @@ export default function CheckoutPage() {
             })
             return
         }
+        // Since the useEffect listens to the cart, we can set the userCompletedCheckout to true
+        setUserCompletedCheckout(true)
         // Send the order to the backend
         console.log('Order submitted', { cart, shippingInfo, paymentInfo })
-
         clearCart()
         router.push('/checkout/success')
+
     }
 
     useEffect(() => {
 
-        // Do not allow user to checkout if cart is empty
-        if (cart.length === 0) {
+        // Do not allow user to checkout if cart is empty unless they have already completed the checkout
+        if (!userCompletedCheckout && cart.length === 0) {
             router.push('/shop')
         }
     }, [cart])

@@ -1,50 +1,57 @@
 "use client"
-import React from 'react'
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import { Button } from './ui/button'
 import Link from 'next/link'
 import { Menu, Moon, Sun, X, ShoppingCart, Trash2, Minus, Plus } from 'lucide-react'
 import Logo from './logo'
-import { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import throttle from 'lodash/throttle';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { usePathname } from 'next/navigation'
 import { useTheme } from "next-themes"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useCart } from '@/app/context/cart-context'
-import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-  } from "@/components/ui/drawer"
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-// Mock user data 
+// Mock user data (this will be fetched with the actual user data from the database)
 const user = {
-  isLoggedIn: true,
+  isLoggedIn: false,
   name: 'John Doe',
   avatar: 'https://github.com/shadcn.png'
 }
 
 function Navbar() {
-    const { screenSize } = useScreenSize();
     const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart()
+    const [isScrolled, setIsScrolled] = useState(false)
+
+    const { screenSize } = useScreenSize();
     const path = usePathname()
-    const disableNavWithFooter = ["/login", "/checkout", "/register", "/dashboard", "/admin", "/admin/games", "/admin/sales", "/admin/users", "/admin/settings"]
-    const disableBasket = ["/checkout", "/checkout/success"]
-    // const [isCartOpen, setIsCartOpen] = useState(false)
 
-    // const handleCartToggle = () => {
-    //     setIsCartOpen(!isCartOpen)
-    // }
+    const disableNavWithFooter = [
+        "/login", 
+        "/checkout", 
+        "/register", 
+        "/dashboard", 
+        "/admin", 
+        "/admin/games", 
+        "/admin/sales", 
+        "/admin/users", 
+        "/admin/settings", 
+        "/admin/genres"
+    ]
+    const disableBasket = [
+        "/checkout", 
+        "/checkout/success"
+    ]
 
-    // const handleCartInteraction = (e) => {
-    //     e.stopPropagation()
-    // }
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 0)
+        }
+
+        window.addEventListener('scroll', handleScroll)
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
 
     function getScreenSize(width) {
         if (width >= 1536) {
@@ -97,42 +104,67 @@ function Navbar() {
         return dimension;
     }
 
+    const navbarClasses = `w-full h-auto transition-all duration-300 
+    ${isScrolled ? 
+        'shadow-md w-full px-5 md:px-20 lg:px-40 2xl:px-60 overflow-hidden bg-white fixed top-0 left-0 right-0 z-50' : ''}`
+
     return (
         <>
-            {!disableNavWithFooter.includes(path) ? screenSize === 'xs' ? <NavbarMobile screenSize={screenSize} cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} disableBasket={disableBasket} path={path} /> : <FullNavbar cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} disableBasket={disableBasket} path={path} /> : null}
+            {!disableNavWithFooter.includes(path) ? (
+                <div className={navbarClasses}>
+                    {screenSize === 'xs' ? (
+                        <NavbarMobile 
+                            screenSize={screenSize} 
+                            cart={cart} 
+                            removeFromCart={removeFromCart} 
+                            getCartTotal={getCartTotal} 
+                            updateQuantity={updateQuantity} 
+                            disableBasket={disableBasket} 
+                            path={path} 
+                        />
+                    ) : (
+                        <FullNavbar 
+                            cart={cart} 
+                            removeFromCart={removeFromCart} 
+                            getCartTotal={getCartTotal} 
+                            updateQuantity={updateQuantity} 
+                            disableBasket={disableBasket} 
+                            path={path} 
+                        />
+                    )}
+                </div>
+            ) : null}
         </>
     )
 }
 
 function FullNavbar({ cart, removeFromCart, getCartTotal, updateQuantity, disableBasket, path }) {
     return (
-        <div className={"w-full h-auto py-5"}>
-            <nav className={"flex justify-between items-center py-5"}>
-                <div className={"flex justify-between items-center"}>
-                    <Link href={"/"}><Logo /></Link>
-                    <h1 className={"text-2xl font-bold"}>Game Vault</h1>
-                </div>
-                <div className={"flex justify-between items-center"}>
-                    <ul className={"flex"}>
-                        <li className={"mx-5"}><Link href={"/shop"}>Browse Games</Link></li>
-                        <li className={"mx-5"}><Link href={"/about-us"}>About us</Link></li>
-                        <li className={"mx-5"}><Link href={"/faq"}>FAQ</Link></li>
-                    </ul>
-                    
-                    {!disableBasket.includes(path) && <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} />}
-                    {user.isLoggedIn ? (
-                        <Link className="pl-4" href="/profile">
-                            <Avatar className="mr-5">
-                                <AvatarImage src={user.avatar} alt={user.name} />
-                                <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                            </Avatar>
-                        </Link>
-                    ) : (
-                        <Button className={"ml-5"}><Link href={"/register"}>Register {"->"}</Link></Button>
-                    )}
-                </div>
-            </nav>
-        </div>
+        <nav className={"flex justify-between items-center py-5"}>
+            <div className={"flex justify-between items-center"}>
+                <Link href={"/"}><Logo /></Link>
+                <h1 className={"text-2xl font-bold"}>Game Vault</h1>
+            </div>
+            <div className={"flex justify-between items-center"}>
+                <ul className={"flex"}>
+                    <li className={"mx-5"}><Link href={"/shop"}>Browse Games</Link></li>
+                    <li className={"mx-5"}><Link href={"/about-us"}>About us</Link></li>
+                    <li className={"mx-5"}><Link href={"/contact-us"}>Contact Us</Link></li>
+                </ul>
+                
+                {!disableBasket.includes(path) && <BasketComponent cart={cart} removeFromCart={removeFromCart} getCartTotal={getCartTotal} updateQuantity={updateQuantity} />}
+                {user.isLoggedIn ? (
+                    <Link className="pl-4" href="/profile">
+                        <Avatar className="mr-5">
+                            <AvatarImage src={user.avatar} alt={user.name} />
+                            <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                    </Link>
+                ) : (
+                    <Button className={"ml-5"}><Link href={"/register"}>Register {"->"}</Link></Button>
+                )}
+            </div>
+        </nav>
     )
 }
 
@@ -159,7 +191,7 @@ function NavbarMobile({ screenSize, cart, removeFromCart, getCartTotal, updateQu
                                     <li className={""}><Link href={"/"}><Button className={"w-full"} variant="outline">Home</Button></Link></li>
                                     <li className={""}><Link href={"/shop"}><Button className={"w-full"} variant="outline">Browse Games</Button></Link></li>
                                     <li className={""}><Link href={"/about-us"}><Button className={"w-full"} variant="outline">About us</Button></Link></li>
-                                    <li className={"mb-5"}><Link href={"/faq"}><Button className={"w-full"} variant="outline">FAQ</Button></Link></li>
+                                    <li className={"mb-5"}><Link href={"/contact-us"}><Button className={"w-full"} variant="outline">Contact Us</Button></Link></li>
                                 </ul>
                                 <div className={"w-full flex flex-row justify-between gap-2"}>
                                     {user.isLoggedIn ? (
@@ -319,7 +351,7 @@ function BasketItems({ cart, removeFromCart, updateQuantity }) {
     )
 }
 
-
+// I have made this just in case we will need it in the future, however the way I see the website now, it is not needed - Wiktor 
 function ChangeTheme() {
     const [mounted, setMounted] = useState(false)
     const { theme, setTheme } = useTheme()

@@ -5,8 +5,10 @@ import { useTheme } from "next-themes"
 import { Gamepad2, GamepadIcon, Zap, Swords, ShieldCheck, Joystick, Ghost, Pickaxe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 export default function Home() {
+  const genres = ["Action RPG", "Sports", "Simulation", "Action Adventure", "Sandbox", "First-Person Shooter", "Strategy", "Party", "Roguelike", "Co-op Adventure"];
 
 
   return (
@@ -35,7 +37,8 @@ export default function Home() {
           <Image src="/hero.svg" alt="bg" fill objectFit="cover" className={"animate-wiggle"} />
         </div>
       </div>
-      <div className="my-24">
+      
+      <section className="my-24">
         <h2 className="text-4xl font-extrabold text-center my-24">Popular Games</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -54,7 +57,21 @@ export default function Home() {
               </Card>
             ))}
           </div>
-      </div>
+      </section>
+      <section className="my-24">
+        <h2 className="text-4xl font-extrabold text-center mb-12">Explore Game Genres</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {genres.map((genre, index) => (
+            <Link href={`/shop?genre=${encodeURIComponent(genre)}`} key={index}>
+              <Card className="hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full">
+                <CardContent className="flex items-center justify-center h-full p-6 text-center">
+                  <h3 className="text-lg font-semibold">{genre}</h3>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-extrabold text-gray-900 text-center mb-12">Why Choose GameVault?</h2>
@@ -75,6 +92,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      
 
       {/* CTA */}
       <section className="bg-primary rounded-lg py-16 px-4 sm:px-6 lg:px-8 mb-24">
